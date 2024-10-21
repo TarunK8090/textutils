@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 
 export default function TextForm(props) {
-    const [text, setText] = useState(''); 
+    const [text, setText] = useState('');
+    const [utterance, setUtterance] = useState(null); // State to hold the utterance object
 
     const handleUpClick = () => {
         let newText = text.toUpperCase();
@@ -19,6 +20,7 @@ export default function TextForm(props) {
         let newText = '';
         setText(newText);
         props.showAlert("Text Cleared!", "success");
+        stopSpeaking(); // Stop any speaking when clearing text
     }
 
     const handleOnChange = (event) => {
@@ -36,11 +38,34 @@ export default function TextForm(props) {
         props.showAlert("Extra spaces removed!", "success");
     }
 
-    // Text-to-Speech Function
+    // Start speaking
     const handleTextToSpeech = () => {
-        const utterance = new SpeechSynthesisUtterance(text);
-        speechSynthesis.speak(utterance);
+        if (utterance) {
+            speechSynthesis.cancel(); // Cancel any ongoing speech
+        }
+        const newUtterance = new SpeechSynthesisUtterance(text);
+        setUtterance(newUtterance);
+        speechSynthesis.speak(newUtterance);
         props.showAlert("Playing text...", "success");
+    }
+
+    // Pause the speech
+    const handlePause = () => {
+        speechSynthesis.pause();
+        props.showAlert("Speech paused.", "success");
+    }
+
+    // Resume the speech
+    const handleResume = () => {
+        speechSynthesis.resume();
+        props.showAlert("Speech resumed.", "success");
+    }
+
+    // Stop the speech
+    const stopSpeaking = () => {
+        speechSynthesis.cancel();
+        setUtterance(null); // Clear the utterance reference
+        props.showAlert("Speech stopped.", "success");
     }
 
     return (
@@ -63,6 +88,9 @@ export default function TextForm(props) {
                 <button disabled={text.length === 0} className="btn btn-primary mx-1 my-1" onClick={handleCopy}>Copy Text</button>
                 <button disabled={text.length === 0} className="btn btn-primary mx-1 my-1" onClick={handleExtraSpaces}>Remove Extra Spaces</button>
                 <button disabled={text.length === 0} className="btn btn-primary mx-1 my-1" onClick={handleTextToSpeech}>Speak Text</button>
+                <button disabled={text.length === 0} className="btn btn-secondary mx-1 my-1" onClick={handlePause}>Pause</button>
+                <button disabled={text.length === 0} className="btn btn-secondary mx-1 my-1" onClick={handleResume}>Resume</button>
+                <button disabled={text.length === 0} className="btn btn-danger mx-1 my-1" onClick={stopSpeaking}>Stop</button>
             </div>
             <div className="container my-3" style={{ color: props.mode === 'dark' ? 'white' : '#042743' }}>
                 <h2>Your text summary</h2>
